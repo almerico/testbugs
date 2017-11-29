@@ -1,6 +1,8 @@
 #/bin/bash
 set -e
 
+PLAYGROUNDHOSTNAME=${1:-demo.youbpm.com}
+
 curl -fsSL get.docker.com -o get-docker.sh && sudo sh get-docker.sh
 sudo usermod -aG docker ubuntu
 sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.15.0/docker-compose-$(uname -s)-$(uname -m)"
@@ -26,6 +28,10 @@ sudo modprobe xt_ipvs
 #sudo docker pull  franela/dind:hybrid
 sudo docker pull  introproventures/dind
 mv docker-compose.yml 1.yml;envsubst < "1.yml" > "docker-compose.yml";rm 1.yml
+sed -i  's/- .\/haproxy/- \/home\/ubuntu\/go\/src\/github.com\/play-with-docker\/play-with-docker\/haproxy/g' docker-compose.yml
+
+sed -i "s/demo.youbpm.com/$PLAYGROUNDHOSTNAME/g" docker-compose.yml
+sed -i "s/localhost/$PLAYGROUNDHOSTNAME/g" haproxy/haproxy.cfg
 #change in docker-compose.yml ./haproxy to full path and demo.youbpm to something smart
 #change in haproxy.conf localhost to real path
 sudo docker-compose up
