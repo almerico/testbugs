@@ -34,4 +34,5 @@ sed -i "s/demo.youbpm.com/$PLAYGROUNDHOSTNAME/g" docker-compose.yml
 sed -i "s/localhost/$PLAYGROUNDHOSTNAME/g" haproxy/haproxy.cfg
 #change in docker-compose.yml ./haproxy to full path and demo.youbpm to something smart
 #change in haproxy.conf localhost to real path
+sudo docker system prune -f
 sudo docker-compose up
