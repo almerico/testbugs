@@ -154,13 +154,12 @@ services:
 #        - 'salesopps'
 #        networks:
 #        - app
-    adf:
-        image: introproventures/adf-app-manager-ui
-        networks:
-        - traefik_public
-        ports:
-        - "3000:3000"
-
+#    adf:
+#        image: introproventures/adf-app-manager-ui
+#        networks:
+#        - traefik_public
+#        ports:
+#        - "3000:3000"
 networks:
     # app:
     #   driver: overlay
