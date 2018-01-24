@@ -28,8 +28,8 @@ services:
         deploy:
           labels:
           - "traefik.enable=false"
-        ports:
-        - "11389:11389"
+#        ports:
+#        - "11389:11389"
         networks:
         # - app
         - traefik_public
