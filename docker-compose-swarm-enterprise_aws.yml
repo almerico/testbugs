@@ -2,13 +2,13 @@ version: '3.2'
 #you have to run local registry first #docker service create --name registry --publish 5000:5000  registry
 services:
     traefik:
-       image: traefik
+       image: 689735782597.dkr.ecr.us-west-2.amazonaws.com/traefik
        # command: --web --docker --docker.swarmmode --docker.watch --docker.domain=traefik --logLevel=DEBUG
        command: --web --docker --docker.swarmmode --docker.watch  --logLevel=DEBUG
        ports:
        - "80:80"
        - "8082:8080"
-       - "443:443"
+       #- "443:443"
        volumes:
        - /var/run/docker.sock:/var/run/docker.sock
        - /dev/null:/traefik.toml
@@ -20,11 +20,11 @@ services:
        deploy:
         replicas: 1
         placement:
-          constraints: [node.role == manager]                                                   
+          constraints: [node.role == manager]
         # restart_policy:
           # condition: on-failure
     ldap:
-        image: introproventures/ldap:latest
+        image: 689735782597.dkr.ecr.us-west-2.amazonaws.com/ldap:latest
         deploy:
           labels:
           - "traefik.enable=false"
@@ -35,9 +35,9 @@ services:
         - traefik_public
     mysql:
         #image: mysql:latest
-        image: mysql
-        ports:
-        - 3306:3306
+        image: 689735782597.dkr.ecr.us-west-2.amazonaws.com/mysql:latest
+        #ports:
+        #- 3306:3306
         deploy:
          labels:
          - "traefik.enable=false"
@@ -50,12 +50,12 @@ services:
             MYSQL_USER: alfresco
             MYSQL_PASSWORD: alfresco
     mongodb:
-        image: mongo:latest
+        image: 689735782597.dkr.ecr.us-west-2.amazonaws.com/mongo:latest
         deploy:
           labels:
           - "traefik.enable=false"
-        ports:
-        - 27017:27017
+        #ports:
+        #- 27017:27017
         # volumes:
         # - /var/lib/mongodb:/data/db
         networks:
@@ -72,9 +72,9 @@ services:
            - "traefik.backend.loadbalancer.method=drr"
            - "traefik.backend.loadbalancer.swarm=true"
            - "traefik.docker.network=sa_traefik_public"
-        image: introproventures/activiti_enterprise_salesopps:latest
-        ports:
-        - "8080:8080"
+        image: 689735782597.dkr.ecr.us-west-2.amazonaws.com/activiti_enterprise_salesopps:latest
+        #ports:
+        #- "8081:8080"
         #- "7800:7800"
         #- "8000:8000"
         #volumes:
@@ -93,14 +93,14 @@ services:
             JAVA_OPTS: -agentlib:jdwp=transport=dt_socket,address=8000,server=y,suspend=n
             JGROUPS_EXTERNAL_ADDR_COMMAND: ip r|grep 10.1.0.0|awk '{print $$NF}'
     salesopps:
-        image: introproventures/salesopps:latest
-        ports:
-        - "8888:8888"
+        image: 689735782597.dkr.ecr.us-west-2.amazonaws.com/salesopps:latest
+        #ports:
+        #- "8888:8888"
         #- "7801:7801"
         #- "5005:5005"
         deploy:
           labels:
-          - "traefik.frontend.rule=PathPrefix:/"  
+          - "traefik.frontend.rule=PathPrefix:/"
           - "traefik.backend.loadbalancer.sticky=true"
           - "traefik.backend.loadbalancer.method=drr"
           - "traefik.backend.loadbalancer.swarm=true"
@@ -114,7 +114,7 @@ services:
           # - app
           - traefik_public
         environment:
-            JAVA_OPTS: -agentlib:jdwp=transport=dt_socket,address=5005,server=y,suspend=n 
+            JAVA_OPTS: -agentlib:jdwp=transport=dt_socket,address=5005,server=y,suspend=n
             SERVER_USE_FORWARD_HEADERS: "true"
             SERVER_HOST: salesopps
             SERVER_PORT: 8888
@@ -125,9 +125,9 @@ services:
             APP_URL_COMMAND: echo http://pwd$${PWD_IP_ADDRESS//./-}-80.$$PWD_HOST_FQDN
             JGROUPS_EXTERNAL_ADDR_COMMAND: ip r|grep 10.1.0.0|awk '{print $$NF}'
     gossip:
-        image: introproventures/jgroups-gossip:3.1.0.Final
-        ports:
-        - "12001:12001"
+        image: 689735782597.dkr.ecr.us-west-2.amazonaws.com/jgroups-gossip:3.1.0.Final
+     #   ports:
+     #   - "12001:12001"
         networks:
         # - app
         - traefik_public
@@ -145,7 +145,8 @@ services:
          - -c
          - |
           echo "`date` starting activiti check "&&while ! nc  activiti 8080 --send-only </dev/null;do echo "`date` waiting for activiti" ; sleep 5;done && sleep 5&& echo "`date `activiti opened port proceed with import"  && curl -X POST -u admin:12345 -F "file=@/root/Opportunity.zip" "http://activiti:8080/activiti-app/api/enterprise/app-definitions/import "&& echo "`date` starting deploy"&&sleep 5&&curl -X POST -H "Content-Type: application/json"  -u admin:12345 -d "{}" "http://activiti:8080/activiti-app/api/enterprise/app-definitions/41/publish" && echo "`date`start adding to screen"&&sleep 5&& curl -X POST -u admin:12345 -d '{"appDefinitions" : [ {"id" : 41}]}'  -H "Content-Type: application/json" http://activiti:8080/activiti-app/api/enterprise/runtime-app-definitions
-         #    alfresco-one-comunity:
+
+#    alfresco-one-comunity:
 #        image: introproventures/alfresco_one_comunity
 #        ports:
 #        - "8081:8081"
@@ -154,12 +155,6 @@ services:
 #        - 'salesopps'
 #        networks:
 #        - app
-#    adf:
-#        image: introproventures/adf-app-manager-ui
-#        networks:
-#        - traefik_public
-#        ports:
-#        - "3000:3000"
 networks:
     # app:
     #   driver: overlay
