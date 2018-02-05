@@ -158,6 +158,15 @@ services:
           PWD_IP_ADDRESS: ${PWD_IP_ADDRESS}
           APP_URL_COMMAND: echo http://pwd$${PWD_IP_ADDRESS//./-}-80.$$PWD_HOST_FQDN
           JGROUPS_EXTERNAL_ADDR_COMMAND: ip r|grep 10.1.0.0|awk '{print $$NF}'
+        command:
+        - sh
+        - -c
+        - |
+        ext_addr=$(eval $JGROUPS_EXTERNAL_ADDR_COMMAND);
+        export JAVA_OPTS="$JAVA_OPTS -DJGROUPS_EXTERNAL_ADDR=$ext_addr";
+        java -jar ${ALFRESCO_HOME}/bin/alfresco-mmt.jar install ${ALFRESCO_HOME}/amps ${ALFRESCO_HOME}/tomcat/webapps/alfresco.war -directory -force $*
+        
+        
         
 networks:
     # app:
