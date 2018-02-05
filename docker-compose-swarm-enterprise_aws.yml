@@ -152,7 +152,7 @@ services:
         depends_on:
         - 'salesopps'
         networks:
-        - app
+        - traefik_public
 networks:
     # app:
     #   driver: overlay
