@@ -50,7 +50,7 @@ services:
             MYSQL_USER: alfresco
             MYSQL_PASSWORD: alfresco
     mongodb:
-        image: mongo:latest
+        image: mongo:3.2
         deploy:
           labels:
           - "traefik.enable=false"
