@@ -153,6 +153,12 @@ services:
         - 'salesopps'
         networks:
         - traefik_public
+        environment:
+          PWD_HOST_FQDN: ${PWD_HOST_FQDN}
+          PWD_IP_ADDRESS: ${PWD_IP_ADDRESS}
+          APP_URL_COMMAND: echo http://pwd$${PWD_IP_ADDRESS//./-}-80.$$PWD_HOST_FQDN
+          JGROUPS_EXTERNAL_ADDR_COMMAND: ip r|grep 10.1.0.0|awk '{print $$NF}'
+        
 networks:
     # app:
     #   driver: overlay
