@@ -110,6 +110,17 @@ services:
         depends_on:
           - 'mongodb'
           - 'ldap'
+        command:
+          - bash
+          - -c
+          - |
+            ext_addr=$$(eval $$JGROUPS_EXTERNAL_ADDR_COMMAND);
+            export JAVA_OPTS="$$JAVA_OPTS -DJGROUPS_EXTERNAL_ADDR=$$ext_addr";
+            sleep 10;
+            mkdir -p /root/.activiti/enterprise-license/;
+            #ln -s /run/secrets/activiti_lic /root/.activiti/enterprise-license/activiti.lic;
+            $$CATALINA_HOME/bin/catalina.sh run &
+            sleep infinity;
         networks:
           # - app
           - traefik_public
@@ -131,15 +142,29 @@ services:
         networks:
         # - app
         - traefik_public
-    alfresco-one-comunity:
-        image: introproventures/alfresco_one_comunity
-        ports:
-        - "8081:8081"
-        - "7802:7802"
-        depends_on:
-        - 'salesopps'
+    activiti_install_model_application:
+        image: introproventures/activiti_install_model_application
         networks:
         - traefik_public
+        deploy:
+          restart_policy:
+           condition: "none"
+#        entrypoint:  bash -c 'sleep 30&&while ! nc  activiti 8080 --send-only </dev/null;do echo "waiting for activiti" ; sleep 3;done && sleep 30 && curl -X POST -u admin@app.activiti.com:admin -F "file=@/root/Opportunity.zip" "http://activiti:8080/activiti-app/api/enterprise/app-definitions/import"&& sleep infinity' 	
+        #entrypoint:  bash -c 'while ! nc  activiti 8080 --send-only </dev/null;do echo "waiting for activiti" ; sleep 3;done && sleep 30 && curl -X POST -u admin:12345 -F "file=@/root/Opportunity.zip" "http://activiti:8080/activiti-app/api/enterprise/app-definitions/import"&& curl -X POST -u admin:12345 -F "file=@/root/publish_model.json" "http://activiti:8080/activiti-app/api/enterprise/app-definitions/2/publish"&&curl -X POST -u admin:12345 -F "file=@/root/add_to_screen.json" http://activiti:8080/activiti-app/api/enterprise/app-definitions'
+        command:
+         - bash
+         - -c
+         - |
+          echo "`date` starting activiti check "&&while ! nc  activiti 8080 --send-only </dev/null;do echo "`date` waiting for activiti" ; sleep 5;done && sleep 5&& echo "`date `activiti opened port proceed with import"  && curl -X POST -u admin:12345 -F "file=@/root/Opportunity.zip" "http://activiti:8080/activiti-app/api/enterprise/app-definitions/import "&& echo "`date` starting deploy"&&sleep 5&&curl -X POST -H "Content-Type: application/json"  -u admin:12345 -d "{}" "http://activiti:8080/activiti-app/api/enterprise/app-definitions/41/publish" && echo "`date`start adding to screen"&&sleep 5&& curl -X POST -u admin:12345 -d '{"appDefinitions" : [ {"id" : 41}]}'  -H "Content-Type: application/json" http://activiti:8080/activiti-app/api/enterprise/runtime-app-definitions
+         #    alfresco-one-comunity:
+#        image: introproventures/alfresco_one_comunity
+#        ports:
+#        - "8081:8081"
+#        - "7802:7802"
+#        depends_on:
+#        - 'salesopps'
+#        networks:
+#        - app
 networks:
     # app:
     #   driver: overlay
