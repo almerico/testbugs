@@ -96,11 +96,13 @@ services:
           - bash
           - -c
           - |
+            while ! nc mysql 3306 --send-only </dev/null;do echo "waiting for mysql" ; sleep 3;done;
             ext_addr=$$(eval $$JGROUPS_EXTERNAL_ADDR_COMMAND);
             export JAVA_OPTS="$$JAVA_OPTS -DJGROUPS_EXTERNAL_ADDR=$$ext_addr";
             sleep 10;
             mkdir -p /root/.activiti/enterprise-license/;
             #ln -s /run/secrets/activiti_lic /root/.activiti/enterprise-license/activiti.lic;
+            
             $$CATALINA_HOME/bin/catalina.sh run &
             sleep infinity;    
     salesopps:
