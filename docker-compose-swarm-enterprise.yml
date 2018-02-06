@@ -8,7 +8,7 @@ services:
        ports:
        - "80:80"
        - "8082:8080"
-       - "443:443"
+       #- "443:443"
        volumes:
        - /var/run/docker.sock:/var/run/docker.sock
        - /dev/null:/traefik.toml
@@ -28,8 +28,8 @@ services:
         deploy:
           labels:
           - "traefik.enable=false"
-        ports:
-        - "11389:11389"
+#        ports:
+#        - "11389:11389"
         networks:
         # - app
         - traefik_public
@@ -73,8 +73,8 @@ services:
            - "traefik.backend.loadbalancer.swarm=true"
            - "traefik.docker.network=sa_traefik_public"
         image: introproventures/activiti_enterprise_salesopps:latest
-        ports:
-        - "8080:8080"
+        #ports:
+        #- "8080:8080"
         #- "7800:7800"
         #- "8000:8000"
         #volumes:
@@ -138,8 +138,8 @@ services:
             JGROUPS_EXTERNAL_ADDR_COMMAND: ip r|grep 10.1.0.0|awk '{print $$NF}'
     gossip:
         image: introproventures/jgroups-gossip:3.1.0.Final
-        ports:
-        - "12001:12001"
+        #ports:
+        #- "12001:12001"
         networks:
         # - app
         - traefik_public
@@ -154,9 +154,9 @@ services:
          - bash
          - -c
          - |
-          echo "`date` starting activiti check "&&while ! nc  activiti 8080 --send-only </dev/null;do echo "`date` waiting for activiti" ; sleep 5;done && sleep 5&& echo "`date `activiti opened port proceed with import"  && curl -X POST -u admin:12345 -F "file=@/root/Opportunity.zip" "http://activiti:8080/activiti-app/api/enterprise/app-definitions/import "&& echo "`date` starting deploy"&&sleep 5&&curl -X POST -H "Content-Type: application/json"  -u admin:12345 -d "{}" "http://activiti:8080/activiti-app/api/enterprise/app-definitions/24/publish" && echo "`date`start adding to screen"&&sleep 5&& curl -X POST -u admin:12345 -d '{"appDefinitions" : [ {"id" : 24}]}'  -H "Content-Type: application/json" http://activiti:8080/activiti-app/api/enterprise/runtime-app-definitions
+           echo "`date` starting activiti check "&&while ! nc  activiti 8080 --send-only </dev/null;do echo "`date` waiting for activiti" ; sleep 5;done && sleep 5&& echo "`date `activiti opened port proceed with import"  && curl -X POST -u admin:12345 -F "file=@/root/Opportunity.zip" "http://activiti:8080/activiti-app/api/enterprise/app-definitions/import "&& echo "`date` starting deploy"&&sleep 5&&curl -X POST -H "Content-Type: application/json"  -u admin:12345 -d "{}" "http://activiti:8080/activiti-app/api/enterprise/app-definitions/41/publish" && echo "`date`start adding to screen"&&sleep 5&& curl -X POST -u admin:12345 -d '{"appDefinitions" : [ {"id" : 41}]}'  -H "Content-Type: application/json" http://activiti:8080/activiti-app/api/enterprise/runtime-app-definitions
     alfresco-one-comunity:
-       image: introproventures/alfresco_one_comunity:local
+       image: introproventures/alfresco_one_comunity:latest
        ports:
        - "8081:8081"
        #- "7802:7802"
