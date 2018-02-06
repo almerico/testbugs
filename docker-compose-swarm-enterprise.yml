@@ -92,6 +92,17 @@ services:
             DB_PASS: alfresco
             JAVA_OPTS: -agentlib:jdwp=transport=dt_socket,address=8000,server=y,suspend=n
             JGROUPS_EXTERNAL_ADDR_COMMAND: ip r|grep 10.1.0.0|awk '{print $$NF}'
+        command:
+          - bash
+          - -c
+          - |
+            ext_addr=$$(eval $$JGROUPS_EXTERNAL_ADDR_COMMAND);
+            export JAVA_OPTS="$$JAVA_OPTS -DJGROUPS_EXTERNAL_ADDR=$$ext_addr";
+            sleep 10;
+            mkdir -p /root/.activiti/enterprise-license/;
+            #ln -s /run/secrets/activiti_lic /root/.activiti/enterprise-license/activiti.lic;
+            $$CATALINA_HOME/bin/catalina.sh run &
+            sleep infinity;    
     salesopps:
         image: introproventures/salesopps:latest
         #ports:
@@ -110,17 +121,6 @@ services:
         depends_on:
           - 'mongodb'
           - 'ldap'
-        command:
-          - bash
-          - -c
-          - |
-            ext_addr=$$(eval $$JGROUPS_EXTERNAL_ADDR_COMMAND);
-            export JAVA_OPTS="$$JAVA_OPTS -DJGROUPS_EXTERNAL_ADDR=$$ext_addr";
-            sleep 10;
-            mkdir -p /root/.activiti/enterprise-license/;
-            #ln -s /run/secrets/activiti_lic /root/.activiti/enterprise-license/activiti.lic;
-            $$CATALINA_HOME/bin/catalina.sh run &
-            sleep infinity;
         networks:
           # - app
           - traefik_public
