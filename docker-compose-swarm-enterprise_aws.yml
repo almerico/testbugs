@@ -92,6 +92,18 @@ services:
             DB_PASS: alfresco
             JAVA_OPTS: -agentlib:jdwp=transport=dt_socket,address=8000,server=y,suspend=n
             JGROUPS_EXTERNAL_ADDR_COMMAND: ip r|grep 10.1.0.0|awk '{print $$NF}'
+        command:
+          - bash
+          - -c
+          - |
+            while ! nc mysql 3306 --send-only </dev/null;do echo "waiting for mysql" ; sleep 3;done;
+            ext_addr=$$(eval $$JGROUPS_EXTERNAL_ADDR_COMMAND);
+            export JAVA_OPTS="$$JAVA_OPTS -DJGROUPS_EXTERNAL_ADDR=$$ext_addr";
+            sleep 10;
+            mkdir -p /root/.activiti/enterprise-license/;
+            #ln -s /run/secrets/activiti_lic /root/.activiti/enterprise-license/activiti.lic;
+            $$CATALINA_HOME/bin/catalina.sh run &
+            sleep infinity;
     salesopps:
         image: 689735782597.dkr.ecr.us-west-2.amazonaws.com/salesopps:latest
         #ports:
@@ -143,31 +155,25 @@ services:
          - -c
          - |
           echo "`date` starting activiti check "&&while ! nc  activiti 8080 --send-only </dev/null;do echo "`date` waiting for activiti" ; sleep 5;done && sleep 5&& echo "`date `activiti opened port proceed with import"  && curl -X POST -u admin:12345 -F "file=@/root/Opportunity.zip" "http://activiti:8080/activiti-app/api/enterprise/app-definitions/import "&& echo "`date` starting deploy"&&sleep 5&&curl -X POST -H "Content-Type: application/json"  -u admin:12345 -d "{}" "http://activiti:8080/activiti-app/api/enterprise/app-definitions/41/publish" && echo "`date`start adding to screen"&&sleep 5&& curl -X POST -u admin:12345 -d '{"appDefinitions" : [ {"id" : 41}]}'  -H "Content-Type: application/json" http://activiti:8080/activiti-app/api/enterprise/runtime-app-definitions
-
     alfresco-one-comunity:
-        image: introproventures/alfresco_one_comunity
-        ports:
-        - "8081:8081"
-        - "7802:7802"
-        depends_on:
-        - 'salesopps'
-        networks:
-        - traefik_public
-        environment:
-          PWD_HOST_FQDN: ${PWD_HOST_FQDN}
-          PWD_IP_ADDRESS: ${PWD_IP_ADDRESS}
-          APP_URL_COMMAND: echo http://pwd$${PWD_IP_ADDRESS//./-}-80.$$PWD_HOST_FQDN
+       image: 689735782597.dkr.ecr.us-west-2.amazonaws.com/alfresco_one_comunity:latest
+       ports:
+       - "8081:8081"
+#        - "7802:7802"
+       depends_on:
+       - 'salesopps'
+       networks:
+       - traefik_public
+       environment:
           JGROUPS_EXTERNAL_ADDR_COMMAND: ip r|grep 10.1.0.0|awk '{print $$NF}'
-        command:
-        - sh
-        - -c
-        - |
-        ext_addr=$(eval $JGROUPS_EXTERNAL_ADDR_COMMAND);
-        export JAVA_OPTS="$JAVA_OPTS -DJGROUPS_EXTERNAL_ADDR=$ext_addr";
-        java -jar ${ALFRESCO_HOME}/bin/alfresco-mmt.jar install ${ALFRESCO_HOME}/amps ${ALFRESCO_HOME}/tomcat/webapps/alfresco.war -directory -force $*
-        
-        
-        
+       command:
+          - bash
+          - -c
+          - |
+            ext_addr=$$(eval $$JGROUPS_EXTERNAL_ADDR_COMMAND);
+            export JAVA_OPTS="$$JAVA_OPTS -DJGROUPS_EXTERNAL_ADDR=$$ext_addr";
+            /usr/bin/supervisord -c /etc/supervisord.conf -n;
+
 networks:
     # app:
     #   driver: overlay
